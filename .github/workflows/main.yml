@@ -1,0 +1,63 @@
+name: Build Tauri Meteor Template.
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: setup Rust cache
+      uses: actions/cache@v2
+      with:
+        key: ${{ matrix.os }}-${{ hashFiles('packages/admin/src-tauri/Cargo.lock') }}
+        path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git
+            ./packages/admin/src-tauri/target
+            
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 'latest'
+
+    - name: 🦀 Install Rust
+      uses: actions-rs/toolchain@v1
+      with: { toolchain: stable }
+
+    - name: Install webkit2gtk (ubuntu only)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get upgrade -y --no-install-recommends webkit2gtk-4.0
+        
+    - name: Install Node.js dependencies
+      run: npm install
+
+    - name: Install Tauri CLI
+      run: cargo install tauri-cli # Install Tauri dependencies
+
+    - name: Build application
+      run: npm run build
+
+    - name: Upload release artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-${{ matrix.os }}
+        path: |
+          packages/admin/src-tauri/target/release/bundle
+
