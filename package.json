@@ -10,8 +10,9 @@
     "prebuild": "rimraf ./dist",
     "build:fe": "webpack --production",
     "build:tauri": "tauri build",
-    "build": "npm run build:fe && npm run build:tauri",
-    "dev": "concurrently -p \"[{name}]\" -n \"front-end,tauri\" -c \"bgGreen.bold,bgCyan.bold\" \"npm run dev:fe\" \"npm run dev:tauri\"",
+    "build": "bun run build",
+    "tauri": "tauri",
+    "dev": "bun run dev",
     "dev:fe": "webpack-dev-server --watch",
     "dev:tauri": "cross-env RUST_DEBUG=1 NODE_TLS_REJECT_UNAUTHORIZED=0 tauri dev"
   },
